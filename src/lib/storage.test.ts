@@ -10,6 +10,8 @@ function makeResult(id: string): SessionResult {
     topicId: "informatics",
     topicTitle: "Информатика",
     difficulty: "easy",
+    grade: 8,
+    durationMs: 125000,
     correctCount: 3,
     totalQuestions: 5,
     totalScore: 7,

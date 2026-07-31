@@ -1,5 +1,28 @@
 import { HISTORY_LIMIT, STORAGE_KEY } from "./constants";
-import type { SessionResult } from "./types";
+import type { Grade, SessionResult } from "./types";
+
+function normalizeResult(item: Partial<SessionResult> & { id?: string }): SessionResult | null {
+  if (!item?.id || !item.topicId || !item.topicTitle) {
+    return null;
+  }
+
+  return {
+    id: item.id,
+    date: item.date ?? "",
+    topicId: item.topicId,
+    topicTitle: item.topicTitle,
+    difficulty: item.difficulty ?? "easy",
+    grade: (item.grade as Grade | undefined) ?? 8,
+    durationMs: item.durationMs ?? null,
+    correctCount: item.correctCount ?? 0,
+    totalQuestions: item.totalQuestions ?? 5,
+    totalScore: item.totalScore ?? 1,
+    briefReview: item.briefReview ?? "",
+    recommendations: Array.isArray(item.recommendations)
+      ? item.recommendations
+      : [],
+  };
+}
 
 export function loadHistory(): SessionResult[] {
   if (typeof window === "undefined") {
@@ -11,8 +34,14 @@ export function loadHistory(): SessionResult[] {
     if (!raw) {
       return [];
     }
-    const parsed = JSON.parse(raw) as SessionResult[];
-    return Array.isArray(parsed) ? parsed.slice(0, HISTORY_LIMIT) : [];
+    const parsed = JSON.parse(raw) as Array<Partial<SessionResult>>;
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .map((item) => normalizeResult(item))
+      .filter((item): item is SessionResult => item != null)
+      .slice(0, HISTORY_LIMIT);
   } catch {
     return [];
   }

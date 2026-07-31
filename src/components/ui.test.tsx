@@ -12,7 +12,7 @@ describe("StartScreen", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: /AI-тренажёр собеседований для школьника/i,
+        name: /Тренажёр для школьника/i,
       }),
     ).toBeInTheDocument();
 

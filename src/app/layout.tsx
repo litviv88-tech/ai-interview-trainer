@@ -13,9 +13,9 @@ const sourceSerif = Source_Serif_4({
 });
 
 export const metadata: Metadata = {
-  title: "AI-тренажёр собеседований",
+  title: "Тренажёр для школьника",
   description:
-    "Тренировка ответов на собеседовании для школьников с строгой оценкой через OpenAI",
+    "AI-тренажёр собеседований для школьников 5–11 классов со строгой оценкой ответов",
 };
 
 const themeBootScript = `

@@ -1,6 +1,6 @@
 {
-  "name": "ai-interview-trainer",
-  "version": "0.1.0",
+  "name": "trenazhor-dlya-shkolnika",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",

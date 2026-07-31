@@ -1,79 +1,22 @@
-﻿# AI-тренажёр собеседований для школьника
+﻿# Тренажёр для школьника
 
-Веб-приложение для тренировки ответов на собеседовании.
-Задаёт **5 вопросов**, оценивает ответы через **OpenAI API**, объясняет ошибки
-и предлагает, что повторить.
+AI-тренажёр собеседований для классов **5–11**: 5 вопросов, строгая оценка, таймер и история результатов.
 
-## Стек
+## Ссылка
 
-- Next.js + TypeScript
-- Tailwind CSS
-- OpenAI API
-- localStorage (история последних 5 результатов)
-- GitHub + Vercel
+https://trenazhor-dlya-shkolnika.vercel.app
 
-## Возможности
-
-- Выбор темы и уровня сложности (лёгкий / средний / сложный)
-- Цвета уровней: зелёный (лёгкий), жёлтый (средний), красный (сложный)
-- Генерация следующего вопроса с учётом предыдущих ответов
-- Строгая оценка: модель не соглашается с неверными ответами
-- Итоговый балл (1–10), разбор и рекомендации
-- Сохранение истории в браузере
-- Обработка ошибок и индикатор загрузки
-- Адаптивная вёрстка для телефона
-
-## Быстрый старт (PowerShell)
+## Запуск (PowerShell)
 
 ```powershell
 cd "C:\Work\итоговая работа"
 Copy-Item .env.example .env.local
-# Вставьте OPENAI_API_KEY в .env.local
 npm install
 npm run dev
 ```
 
-Откройте [http://localhost:3000](http://localhost:3000).
-
-## Ветки
-
-```
-main
-├── feature/layout
-├── feature/openai-api
-├── feature/results
-└── fix/error-handling
-```
-
-## Переменные окружения
-
-| Имя | Описание |
-|-----|----------|
-| `OPENAI_API_KEY` | Ключ OpenAI API |
-
-## Обработка ошибок
-
-- пустой ответ;
-- слишком длинный текст (лимит 2000 символов);
-- ошибка OpenAI API;
-- отсутствие интернет-соединения;
-- индикатор загрузки на время запросов.
-
 ## Тесты
 
 ```powershell
-cd "C:\Work\итоговая работа"
 npm test
 ```
-
-Покрыты: валидация ответов, offline/API ошибки, localStorage, константы, API-маршруты и базовый UI.
-
-## Деплой
-
-Проект задеплоен на Vercel: [https://ai-interview-trainer-henna.vercel.app](https://ai-interview-trainer-henna.vercel.app)
-
-Добавьте `OPENAI_API_KEY` в Environment Variables проекта на Vercel.
-
-Репозиторий: [https://github.com/litviv88-tech/ai-interview-trainer](https://github.com/litviv88-tech/ai-interview-trainer)
-
-Релиз: `v1.0.0`

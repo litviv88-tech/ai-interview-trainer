@@ -39,6 +39,7 @@ describe("API /api/interview/question", () => {
         body: JSON.stringify({
           topicId: "informatics",
           difficulty: "easy",
+          grade: 8,
           questionNumber: 1,
           previousRounds: [],
         }),
@@ -60,6 +61,7 @@ describe("API /api/interview/question", () => {
         body: JSON.stringify({
           topicId: "math",
           difficulty: "medium",
+          grade: 9,
           questionNumber: 2,
         }),
       }),
@@ -82,6 +84,7 @@ describe("API /api/interview/evaluate", () => {
         body: JSON.stringify({
           topicId: "informatics",
           difficulty: "easy",
+          grade: 7,
           question: "Что такое переменная?",
           answer: "   ",
         }),
@@ -102,6 +105,7 @@ describe("API /api/interview/evaluate", () => {
         body: JSON.stringify({
           topicId: "informatics",
           difficulty: "easy",
+          grade: 7,
           question: "Вопрос",
           answer: "x".repeat(MAX_ANSWER_LENGTH + 10),
         }),
@@ -129,6 +133,7 @@ describe("API /api/interview/evaluate", () => {
         body: JSON.stringify({
           topicId: "informatics",
           difficulty: "easy",
+          grade: 8,
           question: "Что такое переменная?",
           answer: "Это файл на диске",
         }),

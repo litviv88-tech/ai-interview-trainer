@@ -51,3 +51,4 @@ next-env.d.ts
 
 # OS
 Desktop.ini
+.env*

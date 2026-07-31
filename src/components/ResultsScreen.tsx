@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDuration } from "@/lib/constants";
 import type { SessionResult } from "@/lib/types";
 
 type ResultsScreenProps = {
@@ -20,7 +21,7 @@ export function ResultsScreen({
         Строгая оценка без «зачёта» за неверные ответы.
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="card rounded-2xl p-4">
           <div className="muted text-sm">Правильных ответов</div>
           <div className="mt-2 text-3xl font-bold">
@@ -32,8 +33,18 @@ export function ResultsScreen({
           <div className="mt-2 text-3xl font-bold">{result.totalScore}/10</div>
         </div>
         <div className="card rounded-2xl p-4">
-          <div className="muted text-sm">Тема</div>
-          <div className="mt-2 text-lg font-bold">{result.topicTitle}</div>
+          <div className="muted text-sm">Класс · тема</div>
+          <div className="mt-2 text-lg font-bold">
+            {result.grade} кл. · {result.topicTitle}
+          </div>
+        </div>
+        <div className="card rounded-2xl p-4">
+          <div className="muted text-sm">Время</div>
+          <div className="mt-2 text-3xl font-bold">
+            {result.durationMs == null
+              ? "—"
+              : formatDuration(result.durationMs)}
+          </div>
         </div>
       </div>
 
@@ -63,10 +74,15 @@ export function ResultsScreen({
                 className="card flex flex-wrap items-center justify-between gap-2 rounded-xl px-4 py-3 text-sm"
               >
                 <span className="font-semibold">
+                  {item.grade ? `${item.grade} кл. · ` : ""}
                   {item.topicTitle} · {item.date}
                 </span>
                 <span>
-                  {item.correctCount}/{item.totalQuestions} · {item.totalScore}/10
+                  {item.correctCount}/{item.totalQuestions} · {item.totalScore}
+                  /10
+                  {item.durationMs != null
+                    ? ` · ${formatDuration(item.durationMs)}`
+                    : ""}
                 </span>
               </div>
             ))

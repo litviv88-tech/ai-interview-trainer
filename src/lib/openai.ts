@@ -2,6 +2,7 @@ import type {
   AnswerEvaluation,
   Difficulty,
   FinalSummary,
+  Grade,
   QuestionRound,
   TopicId,
 } from "./types";
@@ -63,8 +64,8 @@ async function askJson<T>(prompt: string): Promise<T> {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://ai-interview-trainer-henna.vercel.app",
-      "X-Title": "AI Interview Trainer",
+      "HTTP-Referer": "https://trenazhor-dlya-shkolnika.vercel.app",
+      "X-Title": "Тренажёр для школьника",
     },
     body: JSON.stringify({
       model: MODEL,
@@ -113,6 +114,7 @@ async function askJson<T>(prompt: string): Promise<T> {
 export async function generateQuestion(params: {
   topicId: TopicId;
   difficulty: Difficulty;
+  grade: Grade;
   questionNumber: number;
   previousRounds: QuestionRound[];
 }): Promise<string> {
@@ -125,12 +127,14 @@ export async function generateQuestion(params: {
 
   const data = await askJson<{ question: string }>(`Сгенерируй вопрос №${params.questionNumber} для школьного собеседования.
 Тема: ${topicTitle(params.topicId)}
+Класс: ${params.grade}
 Сложность: ${difficultyLabel(params.difficulty)}
 Предыдущие ответы:
 ${history || "пока нет"}
 
 Требования к вопросу:
 - один конкретный вопрос без вариантов ответа;
+- материал строго для ${params.grade} класса;
 - учитывай слабые места из предыдущих ответов;
 - не повторяй уже заданные вопросы;
 - уровень сложности строго соответствует выбранному.
@@ -147,14 +151,18 @@ JSON: {"question":"..."}`);
 export async function evaluateAnswer(params: {
   topicId: TopicId;
   difficulty: Difficulty;
+  grade: Grade;
   question: string;
   answer: string;
 }): Promise<AnswerEvaluation> {
   const data = await askJson<AnswerEvaluation>(`Оцени ответ школьника строго.
 Тема: ${topicTitle(params.topicId)}
+Класс: ${params.grade}
 Сложность: ${difficultyLabel(params.difficulty)}
 Вопрос: ${params.question}
 Ответ ученика: ${params.answer}
+
+Оценивай по программе ${params.grade} класса.
 
 Критерии:
 - isCorrect = true только если ответ по сути верный и без критических ошибок;

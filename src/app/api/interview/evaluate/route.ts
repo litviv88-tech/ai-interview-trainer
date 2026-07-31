@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { evaluateAnswer } from "@/lib/openai";
 import { MAX_ANSWER_LENGTH } from "@/lib/constants";
-import type { Difficulty, TopicId } from "@/lib/types";
+import type { Difficulty, Grade, TopicId } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -10,11 +10,18 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       topicId?: TopicId;
       difficulty?: Difficulty;
+      grade?: Grade;
       question?: string;
       answer?: string;
     };
 
-    if (!body.topicId || !body.difficulty || !body.question || body.answer == null) {
+    if (
+      !body.topicId ||
+      !body.difficulty ||
+      !body.grade ||
+      !body.question ||
+      body.answer == null
+    ) {
       return NextResponse.json(
         { error: "Не хватает параметров для оценки ответа." },
         { status: 400 },
@@ -41,6 +48,7 @@ export async function POST(request: Request) {
     const evaluation = await evaluateAnswer({
       topicId: body.topicId,
       difficulty: body.difficulty,
+      grade: body.grade,
       question: body.question,
       answer,
     });

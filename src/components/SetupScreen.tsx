@@ -1,17 +1,19 @@
 "use client";
 
-import { TOPICS } from "@/lib/constants";
-import type { Difficulty, TopicId } from "@/lib/types";
+import { GRADES, TOPICS } from "@/lib/constants";
+import type { Difficulty, Grade, TopicId } from "@/lib/types";
 import { DifficultyPicker } from "./DifficultyPicker";
 import { LoadingIndicator } from "./LoadingIndicator";
 
 type SetupScreenProps = {
   topicId: TopicId;
   difficulty: Difficulty;
+  grade: Grade;
   loading: boolean;
   error: string | null;
   onTopicChange: (topicId: TopicId) => void;
   onDifficultyChange: (difficulty: Difficulty) => void;
+  onGradeChange: (grade: Grade) => void;
   onBack: () => void;
   onSubmit: () => void;
 };
@@ -19,20 +21,43 @@ type SetupScreenProps = {
 export function SetupScreen({
   topicId,
   difficulty,
+  grade,
   loading,
   error,
   onTopicChange,
   onDifficultyChange,
+  onGradeChange,
   onBack,
   onSubmit,
 }: SetupScreenProps) {
   return (
     <section className="panel rise-in px-6 py-8 sm:px-10">
-      <h2 className="brand text-3xl">Тема и сложность</h2>
+      <h2 className="brand text-3xl">Тема, класс и сложность</h2>
       <p className="muted mt-2">
-        Выберите предмет и уровень. Цвет уровня сохраняется на всём пути
-        тренировки.
+        Выберите предмет, класс и уровень. Вопросы будут под вашу программу.
       </p>
+
+      <div className="mt-8">
+        <label className="mb-3 block text-sm font-bold uppercase tracking-wide">
+          Класс
+        </label>
+        <div className="grade-grid">
+          {GRADES.map((item) => {
+            const active = item === grade;
+            return (
+              <button
+                key={item}
+                type="button"
+                aria-pressed={active}
+                onClick={() => onGradeChange(item)}
+                className={`grade-btn ${active ? "is-active" : ""}`}
+              >
+                {item}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="mt-8">
         <label className="mb-3 block text-sm font-bold uppercase tracking-wide">
