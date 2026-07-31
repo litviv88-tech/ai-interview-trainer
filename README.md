@@ -61,6 +61,10 @@ main
 
 ## Деплой
 
-Проект рассчитан на деплой на Vercel. Добавьте `OPENAI_API_KEY` в Environment Variables проекта.
+Проект задеплоен на Vercel: [https://ai-interview-trainer-henna.vercel.app](https://ai-interview-trainer-henna.vercel.app)
+
+Добавьте `OPENAI_API_KEY` в Environment Variables проекта на Vercel.
+
+Репозиторий: [https://github.com/litviv88-tech/ai-interview-trainer](https://github.com/litviv88-tech/ai-interview-trainer)
 
 Релиз: `v1.0.0`
