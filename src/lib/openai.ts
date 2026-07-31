@@ -65,7 +65,7 @@ async function askJson<T>(prompt: string): Promise<T> {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
       "HTTP-Referer": "https://trenazhor-dlya-shkolnika.vercel.app",
-      "X-Title": "Тренажёр для школьника",
+      "X-Title": "School Interview Trainer",
     },
     body: JSON.stringify({
       model: MODEL,
