@@ -1,6 +1,6 @@
 "use client";
 
-import { TOTAL_QUESTIONS } from "@/lib/constants";
+import { MAX_ANSWER_LENGTH, TOTAL_QUESTIONS } from "@/lib/constants";
 import type { Difficulty } from "@/lib/types";
 import { LoadingIndicator } from "./LoadingIndicator";
 
@@ -74,10 +74,20 @@ export function InterviewScreen({
         onChange={(event) => onAnswerChange(event.target.value)}
         placeholder="Напишите ответ своими словами…"
         disabled={loading}
-        maxLength={2500}
+        maxLength={MAX_ANSWER_LENGTH + 100}
       />
+      <div className="muted mt-2 text-sm">
+        {answer.trim().length}/{MAX_ANSWER_LENGTH} символов
+        {answer.trim().length > MAX_ANSWER_LENGTH
+          ? " — слишком длинный текст"
+          : ""}
+      </div>
 
-      {error ? <div className="error-box mt-4">{error}</div> : null}
+      {error ? (
+        <div className="error-box mt-4" role="alert">
+          {error}
+        </div>
+      ) : null}
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
         <button
