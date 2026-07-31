@@ -369,14 +369,12 @@ export default function HomePage() {
   return (
     <main className="app-shell">
       <TopicBackdrop topicId={topicId} active={topicBackdropActive} />
+      <ThemeToggle />
       <div className="app-header">
-        <div>
-          <div className="brand text-lg sm:text-xl">Тренажёр для школьника</div>
-          <div className="subtitle text-sm">
-            Строгая проверка · 5 вопросов · классы 5–11
-          </div>
+        <div className="brand text-lg sm:text-xl">Тренажёр для школьника</div>
+        <div className="subtitle text-sm">
+          Строгая проверка · 5 вопросов · классы 5–11
         </div>
-        <ThemeToggle />
       </div>
 
       {step === "start" ? (

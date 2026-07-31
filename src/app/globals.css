@@ -301,10 +301,7 @@ select {
 .app-header {
   width: min(920px, 100%);
   margin: 0 auto 1.25rem;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
+  padding-right: 7.5rem;
   color: var(--header);
 }
 
@@ -339,6 +336,10 @@ select {
 }
 
 .theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 40;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -351,6 +352,7 @@ select {
   font-weight: 700;
   cursor: pointer;
   box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
   transition: transform 0.18s ease, background 0.18s ease;
 }
 
@@ -701,8 +703,17 @@ html[data-theme="dark"] .submit-btn--hard {
     border-radius: 22px;
   }
 
+  .theme-toggle {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+
   .theme-toggle span:last-child {
     display: none;
+  }
+
+  .app-header {
+    padding-right: 3.25rem;
   }
 
   .grade-grid {
