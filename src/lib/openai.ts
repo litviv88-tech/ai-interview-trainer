@@ -18,11 +18,18 @@ const STRICT_SYSTEM = `Ты — строгий школьный экзамена
 6) Возвращай только валидный JSON без markdown.`;
 
 function getClient() {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey =
+    process.env.OPENAI_API_KEY || process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
-    throw new Error("Не задан OPENAI_API_KEY. Добавьте ключ в переменные окружения.");
+    throw new Error(
+      "Не задан OPENAI_API_KEY (или OPENROUTER_API_KEY). Добавьте ключ в переменные окружения.",
+    );
   }
-  return new OpenAI({ apiKey });
+
+  return new OpenAI({
+    apiKey,
+    baseURL: process.env.OPENAI_BASE_URL || undefined,
+  });
 }
 
 function topicTitle(topicId: TopicId) {
