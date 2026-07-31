@@ -58,6 +58,7 @@ export default function HomePage() {
   const [elapsedMs, setElapsedMs] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const startedAtRef = useRef<number | null>(null);
+  const accumulatedMsRef = useRef(0);
 
   useEffect(() => {
     setHistory(loadHistory());
@@ -95,7 +96,7 @@ export default function HomePage() {
 
     const tick = () => {
       if (startedAtRef.current != null) {
-        setElapsedMs(Date.now() - startedAtRef.current);
+        setElapsedMs(accumulatedMsRef.current + (Date.now() - startedAtRef.current));
       }
     };
 
@@ -107,27 +108,55 @@ export default function HomePage() {
   const topicTitle =
     TOPICS.find((topic) => topic.id === topicId)?.title ?? "Тема";
 
+  function resetTimer() {
+    accumulatedMsRef.current = 0;
+    startedAtRef.current = null;
+    setElapsedMs(0);
+    setTimerRunning(false);
+  }
+
   function startTimer() {
     if (!timerEnabled) {
-      setTimerRunning(false);
-      setElapsedMs(0);
-      startedAtRef.current = null;
+      resetTimer();
       return;
     }
+    accumulatedMsRef.current = 0;
     startedAtRef.current = Date.now();
     setElapsedMs(0);
     setTimerRunning(true);
   }
 
+  function pauseTimer() {
+    if (!timerEnabled || !timerRunning || startedAtRef.current == null) {
+      setTimerRunning(false);
+      return;
+    }
+    accumulatedMsRef.current += Date.now() - startedAtRef.current;
+    startedAtRef.current = null;
+    setElapsedMs(accumulatedMsRef.current);
+    setTimerRunning(false);
+  }
+
+  function resumeTimer() {
+    if (!timerEnabled || step !== "interview") {
+      return;
+    }
+    startedAtRef.current = Date.now();
+    setTimerRunning(true);
+  }
+
   function stopTimer(): number | null {
-    if (!timerEnabled || startedAtRef.current == null) {
+    if (!timerEnabled) {
       setTimerRunning(false);
       return null;
     }
-    const duration = Date.now() - startedAtRef.current;
-    setElapsedMs(duration);
+    if (timerRunning && startedAtRef.current != null) {
+      accumulatedMsRef.current += Date.now() - startedAtRef.current;
+    }
+    startedAtRef.current = null;
+    setElapsedMs(accumulatedMsRef.current);
     setTimerRunning(false);
-    return duration;
+    return accumulatedMsRef.current;
   }
 
   async function startInterview() {
@@ -161,6 +190,7 @@ export default function HomePage() {
   async function submitAnswer() {
     setLoading(true);
     setError(null);
+    pauseTimer();
 
     try {
       const trimmed = validateAnswer(answer);
@@ -234,8 +264,10 @@ export default function HomePage() {
       setQuestionNumber(nextNumber);
       setCurrentQuestion(nextQuestion.question);
       setAnswer("");
+      resumeTimer();
     } catch (err) {
       setError(mapApiError(err));
+      resumeTimer();
     } finally {
       setLoading(false);
     }
@@ -253,20 +285,17 @@ export default function HomePage() {
     setLastFeedback(null);
     setError(null);
     setResult(null);
-    setTimerRunning(false);
-    setElapsedMs(0);
-    startedAtRef.current = null;
+    resetTimer();
   }
 
   function handleTimerToggle(enabled: boolean) {
     setTimerEnabled(enabled);
     if (!enabled) {
-      setTimerRunning(false);
-      setElapsedMs(0);
-      startedAtRef.current = null;
+      resetTimer();
       return;
     }
-    if (step === "interview") {
+    if (step === "interview" && !loading) {
+      accumulatedMsRef.current = 0;
       startedAtRef.current = Date.now();
       setElapsedMs(0);
       setTimerRunning(true);
