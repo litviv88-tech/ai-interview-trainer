@@ -49,6 +49,23 @@ export default function HomePage() {
 
   useEffect(() => {
     setHistory(loadHistory());
+
+    function handleOffline() {
+      setError("Нет интернет-соединения. Проверьте сеть и попробуйте снова.");
+    }
+
+    function handleOnline() {
+      setError((current) =>
+        current?.includes("интернет") ? null : current,
+      );
+    }
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
   }, []);
 
   const topicTitle =
