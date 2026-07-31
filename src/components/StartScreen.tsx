@@ -13,7 +13,7 @@ export function StartScreen({ onStart }: StartScreenProps) {
           Школьный тренажёр
         </p>
         <h1 className="brand mt-3 max-w-2xl text-4xl leading-tight text-[var(--ink)] sm:text-5xl">
-          AI-тренажёр собеседований
+          AI-тренажёр собеседований для школьника
         </h1>
         <p className="muted mt-4 max-w-xl text-base leading-relaxed sm:text-lg">
           Пять вопросов, строгая проверка ответов и понятные рекомендации —
