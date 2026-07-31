@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { InterviewScreen } from "@/components/InterviewScreen";
+import { ResultsScreen } from "@/components/ResultsScreen";
 import { SetupScreen } from "@/components/SetupScreen";
 import { StartScreen } from "@/components/StartScreen";
 import { TOTAL_QUESTIONS, TOPICS } from "@/lib/constants";
 import { assertOnline, mapApiError, validateAnswer } from "@/lib/errors";
+import { loadHistory, saveResult } from "@/lib/storage";
 import type {
   AppStep,
   Difficulty,
   FinalSummary,
   QuestionRound,
+  SessionResult,
   TopicId,
 } from "@/lib/types";
 
@@ -41,7 +44,12 @@ export default function HomePage() {
   const [lastFeedback, setLastFeedback] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [summary, setSummary] = useState<FinalSummary | null>(null);
+  const [result, setResult] = useState<SessionResult | null>(null);
+  const [history, setHistory] = useState<SessionResult[]>([]);
+
+  useEffect(() => {
+    setHistory(loadHistory());
+  }, []);
 
   const topicTitle =
     TOPICS.find((topic) => topic.id === topicId)?.title ?? "Тема";
@@ -63,7 +71,7 @@ export default function HomePage() {
       setCurrentQuestion(data.question);
       setAnswer("");
       setLastFeedback(null);
-      setSummary(null);
+      setResult(null);
       setStep("interview");
     } catch (err) {
       setError(mapApiError(err));
@@ -107,7 +115,23 @@ export default function HomePage() {
             rounds: nextRounds,
           },
         );
-        setSummary(finalized.summary);
+
+        const session: SessionResult = {
+          id: crypto.randomUUID(),
+          date: new Date().toLocaleString("ru-RU"),
+          topicId,
+          topicTitle,
+          difficulty,
+          correctCount: finalized.summary.correctCount,
+          totalQuestions: TOTAL_QUESTIONS,
+          totalScore: finalized.summary.totalScore,
+          briefReview: finalized.summary.briefReview,
+          recommendations: finalized.summary.recommendations,
+        };
+
+        const nextHistory = saveResult(session);
+        setHistory(nextHistory);
+        setResult(session);
         setStep("results");
         setAnswer("");
         return;
@@ -134,12 +158,25 @@ export default function HomePage() {
     }
   }
 
+  function restart() {
+    setStep("start");
+    setTopicId("informatics");
+    setDifficulty("easy");
+    setQuestionNumber(1);
+    setCurrentQuestion("");
+    setAnswer("");
+    setRounds([]);
+    setLastFeedback(null);
+    setError(null);
+    setResult(null);
+  }
+
   return (
     <main className="app-shell">
       <div className="mx-auto mb-5 w-full max-w-[920px] px-1 pt-2 text-white/90">
         <div className="brand text-lg sm:text-xl">AI-тренажёр собеседований</div>
         <div className="text-sm text-white/70">
-          Строгая проверка через OpenAI · 5 вопросов
+          Строгая проверка · 5 вопросов · история в браузере
         </div>
       </div>
 
@@ -178,24 +215,8 @@ export default function HomePage() {
         />
       ) : null}
 
-      {step === "results" && summary ? (
-        <section className="panel rise-in px-6 py-8 sm:px-10">
-          <h2 className="brand text-3xl">Черновик итогов</h2>
-          <p className="mt-3">
-            Правильных: {summary.correctCount}/5 · Оценка: {summary.totalScore}/10
-          </p>
-          <p className="mt-3 leading-relaxed">{summary.briefReview}</p>
-          <button
-            type="button"
-            className="primary-btn mt-6"
-            onClick={() => {
-              setStep("start");
-              setSummary(null);
-            }}
-          >
-            На главную
-          </button>
-        </section>
+      {step === "results" && result ? (
+        <ResultsScreen result={result} history={history} onRestart={restart} />
       ) : null}
     </main>
   );
