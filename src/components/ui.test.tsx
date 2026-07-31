@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StartScreen } from "@/components/StartScreen";
 import { DifficultyPicker } from "@/components/DifficultyPicker";
+import { InterviewScreen } from "@/components/InterviewScreen";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 describe("StartScreen", () => {
@@ -53,5 +54,35 @@ describe("ThemeToggle", () => {
 
     expect(after).not.toBe(before);
     expect(["light", "dark"]).toContain(after);
+  });
+});
+
+describe("InterviewScreen quiz", () => {
+  it("показывает 4 варианта и передаёт выбор", async () => {
+    const onSelectOption = vi.fn();
+    const onSubmit = vi.fn();
+
+    render(
+      <InterviewScreen
+        topicTitle="Информатика · 8 класс"
+        difficulty="easy"
+        mode="quiz"
+        questionNumber={1}
+        question="Сколько бит в байте?"
+        options={["4", "8", "16", "32"]}
+        selectedIndex={null}
+        answer=""
+        loading={false}
+        error={null}
+        lastFeedback={null}
+        onAnswerChange={vi.fn()}
+        onSelectOption={onSelectOption}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    expect(screen.getByText("Викторина")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /B\s*8/i }));
+    expect(onSelectOption).toHaveBeenCalledWith(1);
   });
 });

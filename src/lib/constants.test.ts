@@ -1,8 +1,10 @@
+import { describe, expect, it } from "vitest";
 import {
   DIFFICULTIES,
   GRADES,
   HISTORY_LIMIT,
   MAX_ANSWER_LENGTH,
+  MODES,
   TOTAL_QUESTIONS,
   TOPICS,
   formatDuration,
@@ -22,13 +24,14 @@ describe("constants", () => {
     expect(GRADES).toEqual([5, 6, 7, 8, 9, 10, 11]);
   });
 
-  it("содержит 6 тем и 3 уровня сложности", () => {
-    expect(TOPICS).toHaveLength(6);
+  it("содержит 7 тем, 3 уровня сложности и 2 режима", () => {
+    expect(TOPICS).toHaveLength(7);
     expect(DIFFICULTIES.map((item) => item.id)).toEqual([
       "easy",
       "medium",
       "hard",
     ]);
+    expect(MODES.map((item) => item.id)).toEqual(["classic", "quiz"]);
   });
 
   it("темы имеют уникальные id", () => {

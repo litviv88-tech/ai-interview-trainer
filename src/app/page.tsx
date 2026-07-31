@@ -7,6 +7,7 @@ import { SetupScreen } from "@/components/SetupScreen";
 import { StartScreen } from "@/components/StartScreen";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { TimerDock } from "@/components/TimerDock";
+import { TopicBackdrop } from "@/components/TopicBackdrop";
 import {
   TIMER_STORAGE_KEY,
   TOTAL_QUESTIONS,
@@ -18,7 +19,9 @@ import type {
   AppStep,
   Difficulty,
   FinalSummary,
+  GeneratedQuestion,
   Grade,
+  InterviewMode,
   QuestionRound,
   SessionResult,
   TopicId,
@@ -45,8 +48,12 @@ export default function HomePage() {
   const [topicId, setTopicId] = useState<TopicId>("informatics");
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
   const [grade, setGrade] = useState<Grade>(8);
+  const [mode, setMode] = useState<InterviewMode>("classic");
   const [questionNumber, setQuestionNumber] = useState(1);
   const [currentQuestion, setCurrentQuestion] = useState("");
+  const [options, setOptions] = useState<string[]>([]);
+  const [correctIndex, setCorrectIndex] = useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [answer, setAnswer] = useState("");
   const [rounds, setRounds] = useState<QuestionRound[]>([]);
   const [lastFeedback, setLastFeedback] = useState<string | null>(null);
@@ -105,6 +112,15 @@ export default function HomePage() {
     return () => window.clearInterval(id);
   }, [timerEnabled, timerRunning]);
 
+  const topicBackdropActive = step === "setup" || step === "interview" || step === "results";
+
+  useEffect(() => {
+    document.body.dataset.topicBg = topicBackdropActive ? "on" : "off";
+    return () => {
+      delete document.body.dataset.topicBg;
+    };
+  }, [topicBackdropActive]);
+
   const topicTitle =
     TOPICS.find((topic) => topic.id === topicId)?.title ?? "Тема";
 
@@ -159,23 +175,40 @@ export default function HomePage() {
     return accumulatedMsRef.current;
   }
 
+  function applyGeneratedQuestion(data: GeneratedQuestion) {
+    setCurrentQuestion(data.question);
+    if (mode === "quiz") {
+      setOptions(data.options ?? []);
+      setCorrectIndex(
+        typeof data.correctIndex === "number" ? data.correctIndex : null,
+      );
+      setSelectedIndex(null);
+      setAnswer("");
+    } else {
+      setOptions([]);
+      setCorrectIndex(null);
+      setSelectedIndex(null);
+      setAnswer("");
+    }
+  }
+
   async function startInterview() {
     setLoading(true);
     setError(null);
 
     try {
-      const data = await postJson<{ question: string }>("/api/interview/question", {
+      const data = await postJson<GeneratedQuestion>("/api/interview/question", {
         topicId,
         difficulty,
         grade,
+        mode,
         questionNumber: 1,
         previousRounds: [],
       });
 
       setRounds([]);
       setQuestionNumber(1);
-      setCurrentQuestion(data.question);
-      setAnswer("");
+      applyGeneratedQuestion(data);
       setLastFeedback(null);
       setResult(null);
       setStep("interview");
@@ -193,22 +226,47 @@ export default function HomePage() {
     pauseTimer();
 
     try {
-      const trimmed = validateAnswer(answer);
+      let displayAnswer: string;
+      let evaluated: { evaluation: QuestionRound["evaluation"] };
 
-      const evaluated = await postJson<{
-        evaluation: QuestionRound["evaluation"];
-      }>("/api/interview/evaluate", {
-        topicId,
-        difficulty,
-        grade,
-        question: currentQuestion,
-        answer: trimmed,
-      });
+      if (mode === "quiz") {
+        if (
+          selectedIndex == null ||
+          correctIndex == null ||
+          options.length !== 4
+        ) {
+          throw new Error("Выберите один из четырёх вариантов ответа.");
+        }
+
+        displayAnswer = options[selectedIndex] ?? `Вариант ${selectedIndex + 1}`;
+        evaluated = await postJson<{
+          evaluation: QuestionRound["evaluation"];
+        }>("/api/interview/evaluate", {
+          mode: "quiz",
+          question: currentQuestion,
+          options,
+          correctIndex,
+          selectedIndex,
+        });
+      } else {
+        const trimmed = validateAnswer(answer);
+        displayAnswer = trimmed;
+        evaluated = await postJson<{
+          evaluation: QuestionRound["evaluation"];
+        }>("/api/interview/evaluate", {
+          mode: "classic",
+          topicId,
+          difficulty,
+          grade,
+          question: currentQuestion,
+          answer: trimmed,
+        });
+      }
 
       const nextRound: QuestionRound = {
         questionNumber,
         question: currentQuestion,
-        answer: trimmed,
+        answer: displayAnswer,
         evaluation: evaluated.evaluation,
       };
       const nextRounds = [...rounds, nextRound];
@@ -233,6 +291,7 @@ export default function HomePage() {
           topicTitle,
           difficulty,
           grade,
+          mode,
           durationMs,
           correctCount: finalized.summary.correctCount,
           totalQuestions: TOTAL_QUESTIONS,
@@ -246,24 +305,25 @@ export default function HomePage() {
         setResult(session);
         setStep("results");
         setAnswer("");
+        setSelectedIndex(null);
         return;
       }
 
       const nextNumber = questionNumber + 1;
-      const nextQuestion = await postJson<{ question: string }>(
+      const nextQuestion = await postJson<GeneratedQuestion>(
         "/api/interview/question",
         {
           topicId,
           difficulty,
           grade,
+          mode,
           questionNumber: nextNumber,
           previousRounds: nextRounds,
         },
       );
 
       setQuestionNumber(nextNumber);
-      setCurrentQuestion(nextQuestion.question);
-      setAnswer("");
+      applyGeneratedQuestion(nextQuestion);
       resumeTimer();
     } catch (err) {
       setError(mapApiError(err));
@@ -278,8 +338,12 @@ export default function HomePage() {
     setTopicId("informatics");
     setDifficulty("easy");
     setGrade(8);
+    setMode("classic");
     setQuestionNumber(1);
     setCurrentQuestion("");
+    setOptions([]);
+    setCorrectIndex(null);
+    setSelectedIndex(null);
     setAnswer("");
     setRounds([]);
     setLastFeedback(null);
@@ -304,6 +368,7 @@ export default function HomePage() {
 
   return (
     <main className="app-shell">
+      <TopicBackdrop topicId={topicId} active={topicBackdropActive} />
       <div className="app-header">
         <div>
           <div className="brand text-lg sm:text-xl">Тренажёр для школьника</div>
@@ -323,11 +388,13 @@ export default function HomePage() {
           topicId={topicId}
           difficulty={difficulty}
           grade={grade}
+          mode={mode}
           loading={loading}
           error={error}
           onTopicChange={setTopicId}
           onDifficultyChange={setDifficulty}
           onGradeChange={setGrade}
+          onModeChange={setMode}
           onBack={() => {
             setError(null);
             setStep("start");
@@ -340,13 +407,17 @@ export default function HomePage() {
         <InterviewScreen
           topicTitle={`${topicTitle} · ${grade} класс`}
           difficulty={difficulty}
+          mode={mode}
           questionNumber={questionNumber}
           question={currentQuestion}
+          options={options}
+          selectedIndex={selectedIndex}
           answer={answer}
           loading={loading}
           error={error}
           lastFeedback={lastFeedback}
           onAnswerChange={setAnswer}
+          onSelectOption={setSelectedIndex}
           onSubmit={submitAnswer}
         />
       ) : null}

@@ -1,10 +1,13 @@
 import { HISTORY_LIMIT, STORAGE_KEY } from "./constants";
-import type { Grade, SessionResult } from "./types";
+import type { Grade, InterviewMode, SessionResult } from "./types";
 
 function normalizeResult(item: Partial<SessionResult> & { id?: string }): SessionResult | null {
   if (!item?.id || !item.topicId || !item.topicTitle) {
     return null;
   }
+
+  const mode: InterviewMode =
+    item.mode === "quiz" || item.mode === "classic" ? item.mode : "classic";
 
   return {
     id: item.id,
@@ -13,6 +16,7 @@ function normalizeResult(item: Partial<SessionResult> & { id?: string }): Sessio
     topicTitle: item.topicTitle,
     difficulty: item.difficulty ?? "easy",
     grade: (item.grade as Grade | undefined) ?? 8,
+    mode,
     durationMs: item.durationMs ?? null,
     correctCount: item.correctCount ?? 0,
     totalQuestions: item.totalQuestions ?? 5,

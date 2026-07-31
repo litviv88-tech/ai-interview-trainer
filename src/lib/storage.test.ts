@@ -11,6 +11,7 @@ function makeResult(id: string): SessionResult {
     topicTitle: "Информатика",
     difficulty: "easy",
     grade: 8,
+    mode: "classic",
     durationMs: 125000,
     correctCount: 3,
     totalQuestions: 5,
@@ -50,5 +51,28 @@ describe("storage", () => {
   it("не падает на битом JSON в localStorage", () => {
     window.localStorage.setItem(STORAGE_KEY, "{broken");
     expect(loadHistory()).toEqual([]);
+  });
+
+  it("подставляет classic для старых записей без mode", () => {
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([
+        {
+          id: "old",
+          date: "01.01.2026",
+          topicId: "math",
+          topicTitle: "Математика",
+          difficulty: "easy",
+          grade: 6,
+          correctCount: 2,
+          totalQuestions: 5,
+          totalScore: 4,
+          briefReview: "ok",
+          recommendations: [],
+        },
+      ]),
+    );
+
+    expect(loadHistory()[0]?.mode).toBe("classic");
   });
 });

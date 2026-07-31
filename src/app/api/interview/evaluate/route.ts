@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { evaluateAnswer } from "@/lib/openai";
+import { evaluateAnswer, evaluateQuizAnswer } from "@/lib/openai";
 import { MAX_ANSWER_LENGTH } from "@/lib/constants";
-import type { Difficulty, Grade, TopicId } from "@/lib/types";
+import type { Difficulty, Grade, InterviewMode, TopicId } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -11,9 +11,49 @@ export async function POST(request: Request) {
       topicId?: TopicId;
       difficulty?: Difficulty;
       grade?: Grade;
+      mode?: InterviewMode;
       question?: string;
       answer?: string;
+      options?: string[];
+      correctIndex?: number;
+      selectedIndex?: number;
     };
+
+    const mode = body.mode ?? "classic";
+
+    if (mode === "quiz") {
+      if (
+        !body.question ||
+        !Array.isArray(body.options) ||
+        body.options.length !== 4 ||
+        body.correctIndex == null ||
+        body.selectedIndex == null
+      ) {
+        return NextResponse.json(
+          { error: "Не хватает параметров для проверки викторины." },
+          { status: 400 },
+        );
+      }
+
+      if (
+        !Number.isInteger(body.selectedIndex) ||
+        body.selectedIndex < 0 ||
+        body.selectedIndex > 3
+      ) {
+        return NextResponse.json(
+          { error: "Выберите один из четырёх вариантов ответа." },
+          { status: 400 },
+        );
+      }
+
+      const evaluation = evaluateQuizAnswer({
+        options: body.options,
+        correctIndex: body.correctIndex,
+        selectedIndex: body.selectedIndex,
+      });
+
+      return NextResponse.json({ evaluation });
+    }
 
     if (
       !body.topicId ||

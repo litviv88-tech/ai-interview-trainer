@@ -95,6 +95,10 @@ body {
   transition: background 0.25s ease, color 0.25s ease;
 }
 
+body[data-topic-bg="on"] {
+  background: var(--bg-soft);
+}
+
 body::before {
   content: "";
   position: fixed;
@@ -105,7 +109,175 @@ body::before {
     linear-gradient(var(--grid-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 36px 36px;
+  transition: opacity 0.35s ease;
 }
+
+body[data-topic-bg="on"]::before {
+  opacity: 0;
+}
+
+.topic-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.topic-backdrop__wash {
+  position: absolute;
+  inset: 0;
+  transition: background 0.4s ease, opacity 0.4s ease;
+}
+
+.topic-backdrop__art {
+  position: absolute;
+  inset: 0;
+  color: var(--topic-motif, rgba(20, 36, 51, 0.22));
+}
+
+.topic-motif {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Биология — зелёный, растения, клетки */
+.topic-biology .topic-backdrop__wash {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(88, 170, 110, 0.35), transparent 42%),
+    radial-gradient(circle at 82% 78%, rgba(46, 120, 72, 0.28), transparent 40%),
+    linear-gradient(160deg, #d7edd9 0%, #e8f5e6 45%, #f3faf2 100%);
+}
+.topic-biology .topic-backdrop__art {
+  --topic-motif: rgba(34, 110, 62, 0.28);
+}
+
+/* Русский — линии тетради, тёмно-голубые с фиолетовым */
+.topic-russian .topic-backdrop__wash {
+  background:
+    linear-gradient(180deg, #eef2f8 0%, #f4f6fb 50%, #eaeef7 100%);
+}
+.topic-russian .topic-backdrop__art {
+  --topic-motif: rgba(58, 72, 128, 0.34);
+  color: rgba(62, 78, 138, 0.38);
+}
+
+/* Математика — тот же бирюзовый тон + фигуры */
+.topic-math .topic-backdrop__wash {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(31, 138, 112, 0.2), transparent 34%),
+    radial-gradient(circle at 88% 12%, rgba(201, 146, 26, 0.12), transparent 28%),
+    linear-gradient(160deg, #d9ebe4, #e7f2ec 48%, #f4faf7);
+}
+.topic-math .topic-backdrop__art {
+  --topic-motif: rgba(20, 90, 78, 0.26);
+}
+
+/* Английский — бежевый + лондонские мотивы малиновые */
+.topic-english .topic-backdrop__wash {
+  background:
+    radial-gradient(circle at 20% 15%, rgba(196, 70, 90, 0.1), transparent 36%),
+    linear-gradient(155deg, #f0e4d4 0%, #f6ebe0 48%, #faf3ea 100%);
+}
+.topic-english .topic-backdrop__art {
+  --topic-motif: #c43b5a;
+  color: #c43b5a;
+  opacity: 0.42;
+}
+
+/* География — жёлтый: карты, моря, горы */
+.topic-geography .topic-backdrop__wash {
+  background:
+    radial-gradient(circle at 70% 20%, rgba(230, 180, 60, 0.28), transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(210, 150, 40, 0.22), transparent 38%),
+    linear-gradient(160deg, #f6e7b8 0%, #f8efcf 50%, #fbf6e4 100%);
+}
+.topic-geography .topic-backdrop__art {
+  --topic-motif: rgba(160, 110, 20, 0.32);
+}
+
+/* Информатика — фиолетовый, компьютерная тема */
+.topic-informatics .topic-backdrop__wash {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(140, 90, 210, 0.28), transparent 40%),
+    radial-gradient(circle at 85% 75%, rgba(90, 60, 160, 0.22), transparent 42%),
+    linear-gradient(160deg, #e4dcf5 0%, #ebe4f7 48%, #f4f0fb 100%);
+}
+.topic-informatics .topic-backdrop__art {
+  --topic-motif: rgba(90, 50, 160, 0.3);
+}
+
+/* История — коричневый + еле видный бежевый */
+.topic-history .topic-backdrop__wash {
+  background:
+    radial-gradient(circle at 25% 30%, rgba(180, 140, 95, 0.22), transparent 42%),
+    linear-gradient(160deg, #d9c4a8 0%, #e8d8c2 42%, #f3eadc 100%);
+}
+.topic-history .topic-backdrop__art {
+  --topic-motif: rgba(92, 58, 32, 0.28);
+}
+
+html[data-theme="dark"] .topic-biology .topic-backdrop__wash {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(60, 140, 90, 0.22), transparent 42%),
+    linear-gradient(160deg, #0f2418, #143022 50%, #1a3a28);
+}
+html[data-theme="dark"] .topic-biology .topic-backdrop__art {
+  --topic-motif: rgba(140, 210, 160, 0.2);
+}
+
+html[data-theme="dark"] .topic-russian .topic-backdrop__wash {
+  background: linear-gradient(180deg, #141c2e, #182236 50%, #1a2438);
+}
+html[data-theme="dark"] .topic-russian .topic-backdrop__art {
+  --topic-motif: rgba(150, 165, 220, 0.28);
+  color: rgba(150, 165, 220, 0.28);
+}
+
+html[data-theme="dark"] .topic-math .topic-backdrop__wash {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(60, 188, 156, 0.14), transparent 34%),
+    linear-gradient(160deg, #0b1a2a, #102438 48%, #16324a);
+}
+html[data-theme="dark"] .topic-math .topic-backdrop__art {
+  --topic-motif: rgba(120, 210, 190, 0.2);
+}
+
+html[data-theme="dark"] .topic-english .topic-backdrop__wash {
+  background:
+    linear-gradient(155deg, #2a2118 0%, #33281e 50%, #3a2f24 100%);
+}
+html[data-theme="dark"] .topic-english .topic-backdrop__art {
+  color: #e05578;
+  opacity: 0.35;
+}
+
+html[data-theme="dark"] .topic-geography .topic-backdrop__wash {
+  background:
+    linear-gradient(160deg, #2a220f, #332910 50%, #3a3014);
+}
+html[data-theme="dark"] .topic-geography .topic-backdrop__art {
+  --topic-motif: rgba(230, 190, 90, 0.22);
+}
+
+html[data-theme="dark"] .topic-informatics .topic-backdrop__wash {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(120, 80, 200, 0.2), transparent 40%),
+    linear-gradient(160deg, #18122a, #1e1834 50%, #241e3c);
+}
+html[data-theme="dark"] .topic-informatics .topic-backdrop__art {
+  --topic-motif: rgba(190, 160, 255, 0.22);
+}
+
+html[data-theme="dark"] .topic-history .topic-backdrop__wash {
+  background:
+    linear-gradient(160deg, #241910, #2c2016 50%, #33261c);
+}
+html[data-theme="dark"] .topic-history .topic-backdrop__art {
+  --topic-motif: rgba(220, 180, 130, 0.18);
+}
+
 
 a {
   color: inherit;
@@ -147,7 +319,9 @@ select {
   border: 1px solid var(--panel-border);
   border-radius: 28px;
   box-shadow: var(--shadow);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  position: relative;
+  z-index: 1;
 }
 
 .card {
@@ -259,6 +433,44 @@ html[data-theme="dark"] .difficulty-hard {
   cursor: not-allowed;
 }
 
+.submit-btn--easy {
+  background: var(--easy);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--easy) 35%, transparent);
+}
+
+.submit-btn--easy:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--easy) 82%, #000);
+  filter: brightness(0.95);
+}
+
+.submit-btn--medium {
+  background: var(--medium);
+  color: #1a1408;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--medium) 40%, transparent);
+}
+
+.submit-btn--medium:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--medium) 82%, #000);
+}
+
+.submit-btn--hard {
+  background: var(--hard);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--hard) 38%, transparent);
+}
+
+.submit-btn--hard:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--hard) 82%, #000);
+}
+
+html[data-theme="dark"] .submit-btn--medium {
+  color: #1a1408;
+}
+
+html[data-theme="dark"] .submit-btn--easy,
+html[data-theme="dark"] .submit-btn--hard {
+  color: #07141f;
+}
+
 .ghost-btn {
   background: transparent;
   color: var(--ink);
@@ -361,6 +573,74 @@ html[data-theme="dark"] .difficulty-hard {
   border-color: var(--accent-strong);
   color: var(--btn-fg);
   transform: translateY(-1px);
+}
+
+.mode-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.mode-btn {
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  padding: 1rem 1.1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.mode-btn.is-active,
+.mode-btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: rgba(31, 138, 112, 0.12);
+  transform: translateY(-1px);
+}
+
+.quiz-option {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  padding: 0.95rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.quiz-option:hover:not(:disabled) {
+  border-color: rgba(31, 138, 112, 0.45);
+}
+
+.quiz-option.is-active,
+.quiz-option[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: rgba(31, 138, 112, 0.12);
+  transform: translateY(-1px);
+}
+
+.quiz-option:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.quiz-option__letter {
+  flex: 0 0 auto;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  background: rgba(31, 138, 112, 0.14);
+  color: var(--accent-strong);
 }
 
 .timer-dock {

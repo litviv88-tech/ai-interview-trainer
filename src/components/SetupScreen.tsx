@@ -1,7 +1,7 @@
 "use client";
 
-import { GRADES, TOPICS } from "@/lib/constants";
-import type { Difficulty, Grade, TopicId } from "@/lib/types";
+import { GRADES, MODES, TOPICS } from "@/lib/constants";
+import type { Difficulty, Grade, InterviewMode, TopicId } from "@/lib/types";
 import { DifficultyPicker } from "./DifficultyPicker";
 import { LoadingIndicator } from "./LoadingIndicator";
 
@@ -9,11 +9,13 @@ type SetupScreenProps = {
   topicId: TopicId;
   difficulty: Difficulty;
   grade: Grade;
+  mode: InterviewMode;
   loading: boolean;
   error: string | null;
   onTopicChange: (topicId: TopicId) => void;
   onDifficultyChange: (difficulty: Difficulty) => void;
   onGradeChange: (grade: Grade) => void;
+  onModeChange: (mode: InterviewMode) => void;
   onBack: () => void;
   onSubmit: () => void;
 };
@@ -22,20 +24,45 @@ export function SetupScreen({
   topicId,
   difficulty,
   grade,
+  mode,
   loading,
   error,
   onTopicChange,
   onDifficultyChange,
   onGradeChange,
+  onModeChange,
   onBack,
   onSubmit,
 }: SetupScreenProps) {
   return (
     <section className="panel rise-in px-6 py-8 sm:px-10">
-      <h2 className="brand text-3xl">Тема, класс и сложность</h2>
+      <h2 className="brand text-3xl">Режим, тема и класс</h2>
       <p className="muted mt-2">
-        Выберите предмет, класс и уровень. Вопросы будут под вашу программу.
+        Выберите формат теста, предмет, класс и уровень сложности.
       </p>
+
+      <div className="mt-8">
+        <label className="mb-3 block text-sm font-bold uppercase tracking-wide">
+          Режим
+        </label>
+        <div className="mode-grid">
+          {MODES.map((item) => {
+            const active = item.id === mode;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                aria-pressed={active}
+                onClick={() => onModeChange(item.id)}
+                className={`mode-btn ${active ? "is-active" : ""}`}
+              >
+                <div className="font-bold">{item.label}</div>
+                <div className="muted mt-1 text-sm">{item.hint}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="mt-8">
         <label className="mb-3 block text-sm font-bold uppercase tracking-wide">

@@ -2,13 +2,16 @@ export type Difficulty = "easy" | "medium" | "hard";
 
 export type Grade = 5 | 6 | 7 | 8 | 9 | 10 | 11;
 
+export type InterviewMode = "classic" | "quiz";
+
 export type TopicId =
   | "informatics"
   | "math"
   | "russian"
   | "history"
   | "biology"
-  | "english";
+  | "english"
+  | "geography";
 
 export type AppStep = "start" | "setup" | "interview" | "results";
 
@@ -30,6 +33,12 @@ export interface AnswerEvaluation {
   feedback: string;
   mistakes: string;
   whatToReview: string;
+}
+
+export interface GeneratedQuestion {
+  question: string;
+  options?: string[];
+  correctIndex?: number;
 }
 
 export interface QuestionRound {
@@ -54,6 +63,7 @@ export interface SessionResult {
   topicTitle: string;
   difficulty: Difficulty;
   grade: Grade;
+  mode: InterviewMode;
   durationMs: number | null;
   correctCount: number;
   totalQuestions: number;
@@ -66,6 +76,7 @@ export interface InterviewState {
   topicId: TopicId;
   difficulty: Difficulty;
   grade: Grade;
+  mode: InterviewMode;
   questionNumber: number;
   currentQuestion: string;
   rounds: QuestionRound[];

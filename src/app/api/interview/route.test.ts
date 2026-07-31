@@ -3,10 +3,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/openai", () => ({
   generateQuestion: vi.fn(),
   evaluateAnswer: vi.fn(),
+  evaluateQuizAnswer: vi.fn(),
   finalizeSession: vi.fn(),
 }));
 
-import { evaluateAnswer, generateQuestion } from "@/lib/openai";
+import {
+  evaluateAnswer,
+  evaluateQuizAnswer,
+  generateQuestion,
+} from "@/lib/openai";
 import { POST as postQuestion } from "@/app/api/interview/question/route";
 import { POST as postEvaluate } from "@/app/api/interview/evaluate/route";
 import { MAX_ANSWER_LENGTH } from "@/lib/constants";
@@ -31,7 +36,9 @@ describe("API /api/interview/question", () => {
   });
 
   it("возвращает вопрос при успехе", async () => {
-    vi.mocked(generateQuestion).mockResolvedValue("Что такое алгоритм?");
+    vi.mocked(generateQuestion).mockResolvedValue({
+      question: "Что такое алгоритм?",
+    });
 
     const response = await postQuestion(
       new Request("http://localhost/api/interview/question", {
@@ -40,6 +47,7 @@ describe("API /api/interview/question", () => {
           topicId: "informatics",
           difficulty: "easy",
           grade: 8,
+          mode: "classic",
           questionNumber: 1,
           previousRounds: [],
         }),
@@ -49,6 +57,35 @@ describe("API /api/interview/question", () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({
       question: "Что такое алгоритм?",
+    });
+  });
+
+  it("возвращает вопрос викторины с вариантами", async () => {
+    vi.mocked(generateQuestion).mockResolvedValue({
+      question: "Сколько бит в байте?",
+      options: ["4", "8", "16", "32"],
+      correctIndex: 1,
+    });
+
+    const response = await postQuestion(
+      new Request("http://localhost/api/interview/question", {
+        method: "POST",
+        body: JSON.stringify({
+          topicId: "informatics",
+          difficulty: "easy",
+          grade: 7,
+          mode: "quiz",
+          questionNumber: 1,
+          previousRounds: [],
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      question: "Сколько бит в байте?",
+      options: ["4", "8", "16", "32"],
+      correctIndex: 1,
     });
   });
 
@@ -62,6 +99,7 @@ describe("API /api/interview/question", () => {
           topicId: "math",
           difficulty: "medium",
           grade: 9,
+          mode: "classic",
           questionNumber: 2,
         }),
       }),
@@ -85,6 +123,7 @@ describe("API /api/interview/evaluate", () => {
           topicId: "informatics",
           difficulty: "easy",
           grade: 7,
+          mode: "classic",
           question: "Что такое переменная?",
           answer: "   ",
         }),
@@ -106,6 +145,7 @@ describe("API /api/interview/evaluate", () => {
           topicId: "informatics",
           difficulty: "easy",
           grade: 7,
+          mode: "classic",
           question: "Вопрос",
           answer: "x".repeat(MAX_ANSWER_LENGTH + 10),
         }),
@@ -134,6 +174,7 @@ describe("API /api/interview/evaluate", () => {
           topicId: "informatics",
           difficulty: "easy",
           grade: 8,
+          mode: "classic",
           question: "Что такое переменная?",
           answer: "Это файл на диске",
         }),
@@ -144,5 +185,36 @@ describe("API /api/interview/evaluate", () => {
     const data = await response.json();
     expect(data.evaluation.isCorrect).toBe(false);
     expect(data.evaluation.score).toBe(0);
+  });
+
+  it("проверяет ответ викторины локально", async () => {
+    vi.mocked(evaluateQuizAnswer).mockReturnValue({
+      isCorrect: true,
+      score: 2,
+      feedback: "Верно. Выбран правильный вариант.",
+      mistakes: "нет критических ошибок",
+      whatToReview: "Можно переходить к следующей теме.",
+    });
+
+    const response = await postEvaluate(
+      new Request("http://localhost/api/interview/evaluate", {
+        method: "POST",
+        body: JSON.stringify({
+          mode: "quiz",
+          question: "Сколько бит в байте?",
+          options: ["4", "8", "16", "32"],
+          correctIndex: 1,
+          selectedIndex: 1,
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(evaluateQuizAnswer).toHaveBeenCalledWith({
+      options: ["4", "8", "16", "32"],
+      correctIndex: 1,
+      selectedIndex: 1,
+    });
+    expect(evaluateAnswer).not.toHaveBeenCalled();
   });
 });

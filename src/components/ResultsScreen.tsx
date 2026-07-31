@@ -33,9 +33,11 @@ export function ResultsScreen({
           <div className="mt-2 text-3xl font-bold">{result.totalScore}/10</div>
         </div>
         <div className="card rounded-2xl p-4">
-          <div className="muted text-sm">Класс · тема</div>
+          <div className="muted text-sm">Класс · режим · тема</div>
           <div className="mt-2 text-lg font-bold">
-            {result.grade} кл. · {result.topicTitle}
+            {result.grade} кл. ·{" "}
+            {result.mode === "quiz" ? "Викторина" : "Классический"} ·{" "}
+            {result.topicTitle}
           </div>
         </div>
         <div className="card rounded-2xl p-4">
@@ -75,6 +77,7 @@ export function ResultsScreen({
               >
                 <span className="font-semibold">
                   {item.grade ? `${item.grade} кл. · ` : ""}
+                  {item.mode === "quiz" ? "Викторина · " : ""}
                   {item.topicTitle} · {item.date}
                 </span>
                 <span>

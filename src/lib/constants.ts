@@ -1,4 +1,4 @@
-import type { DifficultyOption, Grade, Topic } from "./types";
+import type { DifficultyOption, Grade, InterviewMode, Topic } from "./types";
 
 export const TOTAL_QUESTIONS = 5;
 export const MAX_ANSWER_LENGTH = 2000;
@@ -7,6 +7,23 @@ export const STORAGE_KEY = "ai-interview-trainer-history-v1";
 export const TIMER_STORAGE_KEY = "ai-interview-trainer-timer-v1";
 
 export const GRADES: Grade[] = [5, 6, 7, 8, 9, 10, 11];
+
+export const MODES: Array<{
+  id: InterviewMode;
+  label: string;
+  hint: string;
+}> = [
+  {
+    id: "classic",
+    label: "Классический",
+    hint: "Пишете ответ своими словами",
+  },
+  {
+    id: "quiz",
+    label: "Викторина",
+    hint: "Выбираете один из 4 вариантов",
+  },
+];
 
 export const TOPICS: Topic[] = [
   {
@@ -38,6 +55,11 @@ export const TOPICS: Topic[] = [
     id: "english",
     title: "Английский язык",
     description: "Грамматика, лексика и короткие объяснения",
+  },
+  {
+    id: "geography",
+    title: "География",
+    description: "Карты, материки, климат и природные зоны",
   },
 ];
 

@@ -2,7 +2,9 @@ import type {
   AnswerEvaluation,
   Difficulty,
   FinalSummary,
+  GeneratedQuestion,
   Grade,
+  InterviewMode,
   QuestionRound,
   TopicId,
 } from "./types";
@@ -115,15 +117,63 @@ export async function generateQuestion(params: {
   topicId: TopicId;
   difficulty: Difficulty;
   grade: Grade;
+  mode: InterviewMode;
   questionNumber: number;
   previousRounds: QuestionRound[];
-}): Promise<string> {
+}): Promise<GeneratedQuestion> {
   const history = params.previousRounds
     .map(
       (round) =>
         `Q${round.questionNumber}: ${round.question}\nA: ${round.answer}\nОценка: ${round.evaluation.isCorrect ? "верно" : "неверно"}; ${round.evaluation.feedback}`,
     )
     .join("\n\n");
+
+  if (params.mode === "quiz") {
+    const data = await askJson<{
+      question: string;
+      options: string[];
+      correctIndex: number;
+    }>(`Сгенерируй вопрос викторины №${params.questionNumber}.
+Тема: ${topicTitle(params.topicId)}
+Класс: ${params.grade}
+Сложность: ${difficultyLabel(params.difficulty)}
+Предыдущие ответы:
+${history || "пока нет"}
+
+Требования:
+- один конкретный вопрос;
+- ровно 4 варианта ответа;
+- только один правильный;
+- материал строго для ${params.grade} класса;
+- не повторяй уже заданные вопросы;
+- правильный вариант не всегда первый;
+- incorrectIndex не нужен, укажи correctIndex от 0 до 3.
+
+JSON:
+{
+  "question":"...",
+  "options":["...","...","...","..."],
+  "correctIndex": 0
+}`);
+
+    const options = Array.isArray(data.options)
+      ? data.options.map((item) => String(item).trim()).filter(Boolean)
+      : [];
+    const correctIndex = Number(data.correctIndex);
+
+    if (!data.question?.trim() || options.length !== 4) {
+      throw new Error("Не удалось сгенерировать вопрос викторины.");
+    }
+    if (!Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex > 3) {
+      throw new Error("Некорректный правильный вариант в вопросе викторины.");
+    }
+
+    return {
+      question: data.question.trim(),
+      options,
+      correctIndex,
+    };
+  }
 
   const data = await askJson<{ question: string }>(`Сгенерируй вопрос №${params.questionNumber} для школьного собеседования.
 Тема: ${topicTitle(params.topicId)}
@@ -145,7 +195,31 @@ JSON: {"question":"..."}`);
     throw new Error("Не удалось сгенерировать вопрос.");
   }
 
-  return data.question.trim();
+  return { question: data.question.trim() };
+}
+
+export function evaluateQuizAnswer(params: {
+  options: string[];
+  correctIndex: number;
+  selectedIndex: number;
+}): AnswerEvaluation {
+  const { options, correctIndex, selectedIndex } = params;
+  const isCorrect = selectedIndex === correctIndex;
+  const correctText = options[correctIndex] ?? "не указан";
+
+  return {
+    isCorrect,
+    score: isCorrect ? 2 : 0,
+    feedback: isCorrect
+      ? "Верно. Выбран правильный вариант."
+      : `Неверно. Правильный ответ: «${correctText}».`,
+    mistakes: isCorrect
+      ? "нет критических ошибок"
+      : `Выбран вариант «${options[selectedIndex] ?? "—"}» вместо «${correctText}».`,
+    whatToReview: isCorrect
+      ? "Можно переходить к следующей теме."
+      : "Повторите материал этого вопроса и близкие определения.",
+  };
 }
 
 export async function evaluateAnswer(params: {

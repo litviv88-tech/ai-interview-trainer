@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { generateQuestion } from "@/lib/openai";
-import type { Difficulty, Grade, QuestionRound, TopicId } from "@/lib/types";
+import type {
+  Difficulty,
+  Grade,
+  InterviewMode,
+  QuestionRound,
+  TopicId,
+} from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -10,6 +16,7 @@ export async function POST(request: Request) {
       topicId?: TopicId;
       difficulty?: Difficulty;
       grade?: Grade;
+      mode?: InterviewMode;
       questionNumber?: number;
       previousRounds?: QuestionRound[];
     };
@@ -18,7 +25,8 @@ export async function POST(request: Request) {
       !body.topicId ||
       !body.difficulty ||
       !body.questionNumber ||
-      !body.grade
+      !body.grade ||
+      !body.mode
     ) {
       return NextResponse.json(
         { error: "Не хватает параметров для генерации вопроса." },
@@ -26,15 +34,16 @@ export async function POST(request: Request) {
       );
     }
 
-    const question = await generateQuestion({
+    const generated = await generateQuestion({
       topicId: body.topicId,
       difficulty: body.difficulty,
       grade: body.grade,
+      mode: body.mode,
       questionNumber: body.questionNumber,
       previousRounds: body.previousRounds ?? [],
     });
 
-    return NextResponse.json({ question });
+    return NextResponse.json(generated);
   } catch (error) {
     const message =
       error instanceof Error
