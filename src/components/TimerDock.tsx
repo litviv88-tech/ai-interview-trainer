@@ -6,6 +6,8 @@ type TimerDockProps = {
   enabled: boolean;
   running: boolean;
   elapsedMs: number;
+  /** Переключатель доступен только в главном меню */
+  editable: boolean;
   onToggle: (enabled: boolean) => void;
 };
 
@@ -13,9 +15,11 @@ export function TimerDock({
   enabled,
   running,
   elapsedMs,
+  editable,
   onToggle,
 }: TimerDockProps) {
   function handleToggle() {
+    if (!editable) return;
     const next = !enabled;
     onToggle(next);
     try {
@@ -29,22 +33,26 @@ export function TimerDock({
     <div className="timer-dock" aria-live="polite">
       <div className="timer-dock__label">Таймер</div>
       <div className="timer-dock__time">
-        {enabled ? formatDuration(elapsedMs) : "выкл"}
-      </div>
-      <button
-        type="button"
-        className={`timer-dock__switch ${enabled ? "is-on" : ""}`}
-        aria-pressed={enabled}
-        onClick={handleToggle}
-      >
         {enabled
-          ? running
-            ? "Вкл · идёт"
-            : elapsedMs > 0
-              ? "Пауза"
-              : "Вкл"
-          : "Выкл"}
-      </button>
+          ? editable
+            ? "включён"
+            : formatDuration(elapsedMs)
+          : "выкл"}
+      </div>
+      {editable ? (
+        <button
+          type="button"
+          className={`timer-dock__switch ${enabled ? "is-on" : ""}`}
+          aria-pressed={enabled}
+          onClick={handleToggle}
+        >
+          {enabled ? "Вкл" : "Выкл"}
+        </button>
+      ) : enabled ? (
+        <div className="timer-dock__status">
+          {running ? "идёт" : elapsedMs > 0 ? "пауза" : "ожидание"}
+        </div>
+      ) : null}
     </div>
   );
 }

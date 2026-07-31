@@ -5,6 +5,7 @@ import { InterviewScreen } from "@/components/InterviewScreen";
 import { ResultsScreen } from "@/components/ResultsScreen";
 import { SetupScreen } from "@/components/SetupScreen";
 import { StartScreen } from "@/components/StartScreen";
+import { HomeButton } from "@/components/HomeButton";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { TimerDock } from "@/components/TimerDock";
 import { TopicBackdrop } from "@/components/TopicBackdrop";
@@ -356,19 +357,18 @@ export default function HomePage() {
     setTimerEnabled(enabled);
     if (!enabled) {
       resetTimer();
-      return;
     }
-    if (step === "interview" && !loading) {
-      accumulatedMsRef.current = 0;
-      startedAtRef.current = Date.now();
-      setElapsedMs(0);
-      setTimerRunning(true);
-    }
+  }
+
+  function goHome() {
+    setLoading(false);
+    restart();
   }
 
   return (
     <main className="app-shell">
       <TopicBackdrop topicId={topicId} active={topicBackdropActive} />
+      {step !== "start" ? <HomeButton onClick={goHome} /> : null}
       <ThemeToggle />
       <div className="app-header">
         <div className="brand text-lg sm:text-xl">Тренажёр для школьника</div>
@@ -428,6 +428,7 @@ export default function HomePage() {
         enabled={timerEnabled}
         running={timerRunning}
         elapsedMs={elapsedMs}
+        editable={step === "start"}
         onToggle={handleTimerToggle}
       />
     </main>

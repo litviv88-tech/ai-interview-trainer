@@ -301,6 +301,7 @@ select {
 .app-header {
   width: min(920px, 100%);
   margin: 0 auto 1.25rem;
+  padding-left: 7rem;
   padding-right: 7.5rem;
   color: var(--header);
 }
@@ -358,6 +359,38 @@ select {
 
 .theme-toggle:hover:not(:disabled) {
   transform: translateY(-1px);
+}
+
+.home-btn {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0.55rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.home-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.timer-dock__status {
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
 }
 
 .difficulty-easy {
@@ -708,11 +741,18 @@ html[data-theme="dark"] .submit-btn--hard {
     right: 0.75rem;
   }
 
-  .theme-toggle span:last-child {
+  .home-btn {
+    top: 0.75rem;
+    left: 0.75rem;
+  }
+
+  .theme-toggle span:last-child,
+  .home-btn span:last-child {
     display: none;
   }
 
   .app-header {
+    padding-left: 3.25rem;
     padding-right: 3.25rem;
   }
 
