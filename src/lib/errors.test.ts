@@ -77,7 +77,15 @@ describe("mapApiError", () => {
     expect(mapApiError(new Error("Invalid api key"))).toMatch(/OPENAI_API_KEY/i);
   });
 
-  it("возвращает запасное сообщение для неизвестной ошибки", () => {
-    expect(mapApiError(null)).toMatch(/непредвиденная/i);
+  it("возвращает сообщение Error как есть", () => {
+    expect(mapApiError(new Error("Кастомная ошибка"))).toBe("Кастомная ошибка");
+  });
+
+  it("возвращает offline-сообщение, если сеть пропала", () => {
+    Object.defineProperty(globalThis, "navigator", {
+      value: { onLine: false },
+      configurable: true,
+    });
+    expect(mapApiError(new Error("whatever"))).toMatch(/интернет/i);
   });
 });

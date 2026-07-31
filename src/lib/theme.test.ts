@@ -34,4 +34,22 @@ describe("theme helpers", () => {
     expect(document.documentElement.dataset.theme).toBe("light");
     expect(window.localStorage.getItem(THEME_STORAGE_KEY)).toBe("light");
   });
+
+  it("берёт системную тёмную тему, если в storage ничего нет", () => {
+    Object.defineProperty(window, "matchMedia", {
+      writable: true,
+      value: (query: string) => ({
+        matches: query.includes("dark"),
+        media: query,
+        onchange: null,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        dispatchEvent: () => false,
+      }),
+    });
+
+    expect(getPreferredTheme()).toBe("dark");
+  });
 });

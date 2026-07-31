@@ -296,14 +296,18 @@ select {
   display: flex;
   flex-direction: column;
   padding: 1.25rem;
+  padding-bottom: 6.5rem;
 }
 
 .app-header {
   width: min(920px, 100%);
   margin: 0 auto 1.25rem;
-  padding-left: 7rem;
   padding-right: 7.5rem;
   color: var(--header);
+}
+
+.app-shell.has-home .app-header {
+  padding-left: 7rem;
 }
 
 .app-header .subtitle {
@@ -730,6 +734,7 @@ html[data-theme="dark"] .submit-btn--hard {
 @media (max-width: 640px) {
   .app-shell {
     padding: 0.75rem;
+    padding-bottom: 6rem;
   }
 
   .panel {
@@ -752,8 +757,11 @@ html[data-theme="dark"] .submit-btn--hard {
   }
 
   .app-header {
-    padding-left: 3.25rem;
     padding-right: 3.25rem;
+  }
+
+  .app-shell.has-home .app-header {
+    padding-left: 3.25rem;
   }
 
   .grade-grid {

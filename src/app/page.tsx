@@ -67,6 +67,8 @@ export default function HomePage() {
   const [timerRunning, setTimerRunning] = useState(false);
   const startedAtRef = useRef<number | null>(null);
   const accumulatedMsRef = useRef(0);
+  const committedQuestionRef = useRef(0);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     setHistory(loadHistory());
@@ -194,6 +196,7 @@ export default function HomePage() {
   }
 
   async function startInterview() {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
 
@@ -207,7 +210,10 @@ export default function HomePage() {
         previousRounds: [],
       });
 
+      if (requestId !== requestIdRef.current) return;
+
       setRounds([]);
+      committedQuestionRef.current = 0;
       setQuestionNumber(1);
       applyGeneratedQuestion(data);
       setLastFeedback(null);
@@ -215,13 +221,20 @@ export default function HomePage() {
       setStep("interview");
       startTimer();
     } catch (err) {
+      if (requestId !== requestIdRef.current) return;
       setError(mapApiError(err));
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   }
 
   async function submitAnswer() {
+    if (loading) return;
+    if (committedQuestionRef.current >= questionNumber) return;
+
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setError(null);
     pauseTimer();
@@ -264,6 +277,8 @@ export default function HomePage() {
         });
       }
 
+      if (requestId !== requestIdRef.current) return;
+
       const nextRound: QuestionRound = {
         questionNumber,
         question: currentQuestion,
@@ -271,8 +286,6 @@ export default function HomePage() {
         evaluation: evaluated.evaluation,
       };
       const nextRounds = [...rounds, nextRound];
-      setRounds(nextRounds);
-      setLastFeedback(evaluated.evaluation.feedback);
 
       if (questionNumber >= TOTAL_QUESTIONS) {
         const durationMs = stopTimer();
@@ -284,6 +297,12 @@ export default function HomePage() {
             rounds: nextRounds,
           },
         );
+
+        if (requestId !== requestIdRef.current) return;
+
+        committedQuestionRef.current = questionNumber;
+        setRounds(nextRounds);
+        setLastFeedback(evaluated.evaluation.feedback);
 
         const session: SessionResult = {
           id: crypto.randomUUID(),
@@ -323,18 +342,28 @@ export default function HomePage() {
         },
       );
 
+      if (requestId !== requestIdRef.current) return;
+
+      committedQuestionRef.current = questionNumber;
+      setRounds(nextRounds);
+      setLastFeedback(evaluated.evaluation.feedback);
       setQuestionNumber(nextNumber);
       applyGeneratedQuestion(nextQuestion);
       resumeTimer();
     } catch (err) {
+      if (requestId !== requestIdRef.current) return;
       setError(mapApiError(err));
       resumeTimer();
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
   }
 
   function restart() {
+    requestIdRef.current += 1;
+    committedQuestionRef.current = 0;
     setStep("start");
     setTopicId("informatics");
     setDifficulty("easy");
@@ -350,6 +379,7 @@ export default function HomePage() {
     setLastFeedback(null);
     setError(null);
     setResult(null);
+    setLoading(false);
     resetTimer();
   }
 
@@ -361,12 +391,15 @@ export default function HomePage() {
   }
 
   function goHome() {
-    setLoading(false);
     restart();
   }
 
+  const showTimer =
+    step === "start" ||
+    ((step === "interview" || step === "results") && timerEnabled);
+
   return (
-    <main className="app-shell">
+    <main className={`app-shell${step !== "start" ? " has-home" : ""}`}>
       <TopicBackdrop topicId={topicId} active={topicBackdropActive} />
       {step !== "start" ? <HomeButton onClick={goHome} /> : null}
       <ThemeToggle />
@@ -395,6 +428,8 @@ export default function HomePage() {
           onModeChange={setMode}
           onBack={() => {
             setError(null);
+            setLoading(false);
+            requestIdRef.current += 1;
             setStep("start");
           }}
           onSubmit={startInterview}
@@ -424,13 +459,15 @@ export default function HomePage() {
         <ResultsScreen result={result} history={history} onRestart={restart} />
       ) : null}
 
-      <TimerDock
-        enabled={timerEnabled}
-        running={timerRunning}
-        elapsedMs={elapsedMs}
-        editable={step === "start"}
-        onToggle={handleTimerToggle}
-      />
+      {showTimer ? (
+        <TimerDock
+          enabled={timerEnabled}
+          running={timerRunning}
+          elapsedMs={elapsedMs}
+          editable={step === "start"}
+          onToggle={handleTimerToggle}
+        />
+      ) : null}
     </main>
   );
 }

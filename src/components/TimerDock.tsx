@@ -46,11 +46,11 @@ export function TimerDock({
           aria-pressed={enabled}
           onClick={handleToggle}
         >
-          {enabled ? "Вкл" : "Выкл"}
+          {enabled ? "Выключить" : "Включить"}
         </button>
       ) : enabled ? (
         <div className="timer-dock__status">
-          {running ? "идёт" : elapsedMs > 0 ? "пауза" : "ожидание"}
+          {running ? "идёт" : elapsedMs > 0 ? "пауза" : "готов"}
         </div>
       ) : null}
     </div>

@@ -10,10 +10,12 @@ vi.mock("@/lib/openai", () => ({
 import {
   evaluateAnswer,
   evaluateQuizAnswer,
+  finalizeSession,
   generateQuestion,
 } from "@/lib/openai";
 import { POST as postQuestion } from "@/app/api/interview/question/route";
 import { POST as postEvaluate } from "@/app/api/interview/evaluate/route";
+import { POST as postFinalize } from "@/app/api/interview/finalize/route";
 import { MAX_ANSWER_LENGTH } from "@/lib/constants";
 
 describe("API /api/interview/question", () => {
@@ -216,5 +218,152 @@ describe("API /api/interview/evaluate", () => {
       selectedIndex: 1,
     });
     expect(evaluateAnswer).not.toHaveBeenCalled();
+  });
+
+  it("отклоняет викторину без выбранного варианта", async () => {
+    const response = await postEvaluate(
+      new Request("http://localhost/api/interview/evaluate", {
+        method: "POST",
+        body: JSON.stringify({
+          mode: "quiz",
+          question: "Вопрос",
+          options: ["A", "B", "C", "D"],
+          correctIndex: 0,
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: expect.stringMatching(/викторины/i),
+    });
+  });
+
+  it("отклоняет викторину с индексом вне диапазона", async () => {
+    const response = await postEvaluate(
+      new Request("http://localhost/api/interview/evaluate", {
+        method: "POST",
+        body: JSON.stringify({
+          mode: "quiz",
+          question: "Вопрос",
+          options: ["A", "B", "C", "D"],
+          correctIndex: 0,
+          selectedIndex: 7,
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: expect.stringMatching(/четырёх/i),
+    });
+  });
+
+  it("возвращает 502 при сбое оценки", async () => {
+    vi.mocked(evaluateAnswer).mockRejectedValue(new Error("evaluate fail"));
+
+    const response = await postEvaluate(
+      new Request("http://localhost/api/interview/evaluate", {
+        method: "POST",
+        body: JSON.stringify({
+          topicId: "russian",
+          difficulty: "easy",
+          grade: 6,
+          mode: "classic",
+          question: "Что такое существительное?",
+          answer: "Часть речи",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({ error: "evaluate fail" });
+  });
+});
+
+describe("API /api/interview/finalize", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("возвращает 400 без раундов", async () => {
+    const response = await postFinalize(
+      new Request("http://localhost/api/interview/finalize", {
+        method: "POST",
+        body: JSON.stringify({ topicId: "math", difficulty: "easy" }),
+      }),
+    );
+
+    expect(response.status).toBe(400);
+  });
+
+  it("возвращает итоги при успехе", async () => {
+    vi.mocked(finalizeSession).mockResolvedValue({
+      correctCount: 4,
+      totalScore: 8,
+      briefReview: "Хорошо",
+      recommendations: ["Повторить формулы"],
+      nextFocus: "Геометрия",
+    });
+
+    const response = await postFinalize(
+      new Request("http://localhost/api/interview/finalize", {
+        method: "POST",
+        body: JSON.stringify({
+          topicId: "math",
+          difficulty: "medium",
+          rounds: [
+            {
+              questionNumber: 1,
+              question: "Q",
+              answer: "A",
+              evaluation: {
+                isCorrect: true,
+                score: 2,
+                feedback: "ok",
+                mistakes: "нет",
+                whatToReview: "нет",
+              },
+            },
+          ],
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      summary: { correctCount: 4, totalScore: 8 },
+    });
+  });
+
+  it("возвращает 502 при ошибке итогов", async () => {
+    vi.mocked(finalizeSession).mockRejectedValue(new Error("finalize fail"));
+
+    const response = await postFinalize(
+      new Request("http://localhost/api/interview/finalize", {
+        method: "POST",
+        body: JSON.stringify({
+          topicId: "english",
+          difficulty: "hard",
+          rounds: [
+            {
+              questionNumber: 1,
+              question: "Q",
+              answer: "A",
+              evaluation: {
+                isCorrect: false,
+                score: 0,
+                feedback: "x",
+                mistakes: "x",
+                whatToReview: "x",
+              },
+            },
+          ],
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({ error: "finalize fail" });
   });
 });
