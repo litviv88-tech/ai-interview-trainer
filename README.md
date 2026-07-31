@@ -59,6 +59,15 @@ main
 - отсутствие интернет-соединения;
 - индикатор загрузки на время запросов.
 
+## Тесты
+
+```powershell
+cd "C:\Work\итоговая работа"
+npm test
+```
+
+Покрыты: валидация ответов, offline/API ошибки, localStorage, константы, API-маршруты и базовый UI.
+
 ## Деплой
 
 Проект задеплоен на Vercel: [https://ai-interview-trainer-henna.vercel.app](https://ai-interview-trainer-henna.vercel.app)
