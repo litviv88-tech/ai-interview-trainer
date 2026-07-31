@@ -1,4 +1,3 @@
-import { generateText } from "ai";
 import type {
   AnswerEvaluation,
   Difficulty,
@@ -17,8 +16,34 @@ const STRICT_SYSTEM = `Ты — строгий школьный экзамена
 5) Не используй фразы вроде «хорошая попытка», если ответ неправильный.
 6) Возвращай только валидный JSON без markdown.`;
 
-const MODEL = (process.env.OPENAI_MODEL?.trim() ||
-  "openai/gpt-4o-mini") as `${string}/${string}`;
+const MODEL =
+  process.env.OPENAI_MODEL?.trim() ||
+  process.env.OPENROUTER_MODEL?.trim() ||
+  "deepseek/deepseek-chat";
+
+function getConfig() {
+  const apiKey = (
+    process.env.OPENROUTER_API_KEY ||
+    process.env.OPENAI_API_KEY ||
+    ""
+  ).trim();
+  const baseUrl = (
+    process.env.OPENAI_BASE_URL ||
+    "https://openrouter.ai/api/v1"
+  ).replace(/\/$/, "");
+
+  if (
+    !apiKey ||
+    apiKey === "your_api_key_here" ||
+    apiKey === "sk-your-key-here"
+  ) {
+    throw new Error(
+      "Не задан OPENROUTER_API_KEY в Vercel. Добавьте ключ OpenRouter в Environment Variables проекта.",
+    );
+  }
+
+  return { apiKey, baseUrl };
+}
 
 function topicTitle(topicId: TopicId) {
   return TOPICS.find((item) => item.id === topicId)?.title ?? topicId;
@@ -31,34 +56,58 @@ function difficultyLabel(difficulty: Difficulty) {
 }
 
 async function askJson<T>(prompt: string): Promise<T> {
-  try {
-    const result = await generateText({
+  const { apiKey, baseUrl } = getConfig();
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "HTTP-Referer": "https://ai-interview-trainer-henna.vercel.app",
+      "X-Title": "AI Interview Trainer",
+    },
+    body: JSON.stringify({
       model: MODEL,
       temperature: 0.35,
-      system: STRICT_SYSTEM,
-      prompt: `${prompt}\n\nОтветь строго валидным JSON-объектом без markdown.`,
-    });
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: STRICT_SYSTEM },
+        { role: "user", content: prompt },
+      ],
+    }),
+  });
 
-    const content = result.text?.trim();
-    if (!content) {
-      throw new Error("AI вернул пустой ответ. Попробуйте ещё раз.");
+  const raw = await response.text();
+  if (!response.ok) {
+    let details = raw;
+    try {
+      const parsed = JSON.parse(raw) as {
+        error?: { message?: string } | string;
+      };
+      if (typeof parsed.error === "string") details = parsed.error;
+      else if (parsed.error && typeof parsed.error === "object" && parsed.error.message) {
+        details = parsed.error.message;
+      }
+    } catch {
+      // keep raw
     }
-
-    const cleaned = content
-      .replace(/^```json\s*/i, "")
-      .replace(/^```\s*/i, "")
-      .replace(/\s*```$/, "");
-
-    return JSON.parse(cleaned) as T;
-  } catch (error) {
-    if (error instanceof SyntaxError) {
-      throw new Error("AI вернул некорректный JSON. Попробуйте ещё раз.");
-    }
-    if (error instanceof Error && error.message) {
-      throw error;
-    }
-    throw new Error("Ошибка AI Gateway. Проверьте доступ к Vercel AI Gateway.");
+    throw new Error(`Ошибка AI API (${response.status}): ${details}`);
   }
+
+  const data = JSON.parse(raw) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  const content = data.choices?.[0]?.message?.content;
+  if (!content) {
+    throw new Error("AI вернул пустой ответ. Попробуйте ещё раз.");
+  }
+
+  const cleaned = content
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/, "");
+
+  return JSON.parse(cleaned) as T;
 }
 
 export async function generateQuestion(params: {
