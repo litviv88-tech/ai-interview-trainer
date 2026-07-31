@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import { generateText } from "ai";
 import type {
   AnswerEvaluation,
   Difficulty,
@@ -17,20 +17,8 @@ const STRICT_SYSTEM = `Ты — строгий школьный экзамена
 5) Не используй фразы вроде «хорошая попытка», если ответ неправильный.
 6) Возвращай только валидный JSON без markdown.`;
 
-function getClient() {
-  const apiKey =
-    process.env.OPENAI_API_KEY || process.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
-    throw new Error(
-      "Не задан OPENAI_API_KEY (или OPENROUTER_API_KEY). Добавьте ключ в переменные окружения.",
-    );
-  }
-
-  return new OpenAI({
-    apiKey,
-    baseURL: process.env.OPENAI_BASE_URL || undefined,
-  });
-}
+const MODEL = (process.env.OPENAI_MODEL?.trim() ||
+  "openai/gpt-4o-mini") as `${string}/${string}`;
 
 function topicTitle(topicId: TopicId) {
   return TOPICS.find((item) => item.id === topicId)?.title ?? topicId;
@@ -43,23 +31,34 @@ function difficultyLabel(difficulty: Difficulty) {
 }
 
 async function askJson<T>(prompt: string): Promise<T> {
-  const client = getClient();
-  const completion = await client.chat.completions.create({
-    model: "gpt-4o-mini",
-    temperature: 0.35,
-    response_format: { type: "json_object" },
-    messages: [
-      { role: "system", content: STRICT_SYSTEM },
-      { role: "user", content: prompt },
-    ],
-  });
+  try {
+    const result = await generateText({
+      model: MODEL,
+      temperature: 0.35,
+      system: STRICT_SYSTEM,
+      prompt: `${prompt}\n\nОтветь строго валидным JSON-объектом без markdown.`,
+    });
 
-  const content = completion.choices[0]?.message?.content;
-  if (!content) {
-    throw new Error("OpenAI вернул пустой ответ. Попробуйте ещё раз.");
+    const content = result.text?.trim();
+    if (!content) {
+      throw new Error("AI вернул пустой ответ. Попробуйте ещё раз.");
+    }
+
+    const cleaned = content
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/i, "")
+      .replace(/\s*```$/, "");
+
+    return JSON.parse(cleaned) as T;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error("AI вернул некорректный JSON. Попробуйте ещё раз.");
+    }
+    if (error instanceof Error && error.message) {
+      throw error;
+    }
+    throw new Error("Ошибка AI Gateway. Проверьте доступ к Vercel AI Gateway.");
   }
-
-  return JSON.parse(content) as T;
 }
 
 export async function generateQuestion(params: {
@@ -150,9 +149,12 @@ export async function finalizeSession(params: {
     )
     .join("\n\n");
 
-  const correctCount = params.rounds.filter((round) => round.evaluation.isCorrect).length;
-  const rawScore = params.rounds.reduce((sum, round) => sum + round.evaluation.score, 0);
-  const totalScore = Math.max(1, Math.min(10, Math.round((rawScore / 10) * 10) || 1));
+  const correctCount = params.rounds.filter((round) => round.evaluation.isCorrect)
+    .length;
+  const rawScore = params.rounds.reduce(
+    (sum, round) => sum + round.evaluation.score,
+    0,
+  );
 
   const data = await askJson<{
     briefReview: string;
@@ -183,7 +185,7 @@ JSON:
 
   return {
     correctCount,
-    totalScore,
+    totalScore: Math.max(1, Math.min(10, Math.round((rawScore / 10) * 10) || 1)),
     briefReview: data.briefReview?.trim() || "Разбор недоступен.",
     recommendations:
       Array.isArray(data.recommendations) && data.recommendations.length > 0
