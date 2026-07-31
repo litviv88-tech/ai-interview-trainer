@@ -21,28 +21,28 @@ export function ResultsScreen({
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-[var(--line)] bg-white p-4">
+        <div className="card rounded-2xl p-4">
           <div className="muted text-sm">Правильных ответов</div>
           <div className="mt-2 text-3xl font-bold">
             {result.correctCount}/{result.totalQuestions}
           </div>
         </div>
-        <div className="rounded-2xl border border-[var(--line)] bg-white p-4">
+        <div className="card rounded-2xl p-4">
           <div className="muted text-sm">Оценка</div>
           <div className="mt-2 text-3xl font-bold">{result.totalScore}/10</div>
         </div>
-        <div className="rounded-2xl border border-[var(--line)] bg-white p-4">
+        <div className="card rounded-2xl p-4">
           <div className="muted text-sm">Тема</div>
           <div className="mt-2 text-lg font-bold">{result.topicTitle}</div>
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-[var(--line)] bg-white p-5">
+      <div className="card mt-6 rounded-2xl p-5">
         <h3 className="text-lg font-bold">Краткий разбор</h3>
         <p className="mt-2 leading-relaxed">{result.briefReview}</p>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-[var(--line)] bg-white p-5">
+      <div className="card mt-4 rounded-2xl p-5">
         <h3 className="text-lg font-bold">Что повторить</h3>
         <ul className="mt-3 list-disc space-y-2 pl-5">
           {result.recommendations.map((item) => (
@@ -60,7 +60,7 @@ export function ResultsScreen({
             history.map((item) => (
               <div
                 key={item.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-sm"
+                className="card flex flex-wrap items-center justify-between gap-2 rounded-xl px-4 py-3 text-sm"
               >
                 <span className="font-semibold">
                   {item.topicTitle} · {item.date}

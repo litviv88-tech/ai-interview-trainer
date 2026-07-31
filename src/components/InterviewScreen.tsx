@@ -44,7 +44,7 @@ export function InterviewScreen({
   return (
     <section className="panel rise-in px-6 py-8 sm:px-10">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="rounded-full border border-[var(--line)] bg-white px-3 py-1 text-sm font-semibold">
+        <span className="card rounded-full px-3 py-1 text-sm font-semibold">
           {topicTitle}
         </span>
         <span
@@ -60,7 +60,7 @@ export function InterviewScreen({
       <h2 className="brand mt-6 text-2xl leading-snug sm:text-3xl">{question}</h2>
 
       {lastFeedback ? (
-        <div className="mt-5 rounded-2xl border border-[var(--line)] bg-white px-4 py-3 text-sm leading-relaxed">
+        <div className="card mt-5 rounded-2xl px-4 py-3 text-sm leading-relaxed">
           <strong>Разбор предыдущего ответа:</strong> {lastFeedback}
         </div>
       ) : null}

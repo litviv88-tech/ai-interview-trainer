@@ -50,7 +50,7 @@ export function SetupScreen({
                 className={`rounded-2xl border px-4 py-4 text-left transition ${
                   active
                     ? "border-[var(--accent)] bg-[rgba(31,138,112,0.12)]"
-                    : "border-[var(--line)] bg-white hover:border-[rgba(31,138,112,0.4)]"
+                    : "border-[var(--line)] bg-[var(--card)] hover:border-[rgba(31,138,112,0.4)]"
                 }`}
               >
                 <div className="font-bold">{topic.title}</div>

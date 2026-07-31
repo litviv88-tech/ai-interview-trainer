@@ -5,6 +5,7 @@ import { InterviewScreen } from "@/components/InterviewScreen";
 import { ResultsScreen } from "@/components/ResultsScreen";
 import { SetupScreen } from "@/components/SetupScreen";
 import { StartScreen } from "@/components/StartScreen";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { TOTAL_QUESTIONS, TOPICS } from "@/lib/constants";
 import { assertOnline, mapApiError, validateAnswer } from "@/lib/errors";
 import { loadHistory, saveResult } from "@/lib/storage";
@@ -190,11 +191,14 @@ export default function HomePage() {
 
   return (
     <main className="app-shell">
-      <div className="mx-auto mb-5 w-full max-w-[920px] px-1 pt-2 text-white/90">
-        <div className="brand text-lg sm:text-xl">AI-тренажёр собеседований</div>
-        <div className="text-sm text-white/70">
-          Строгая проверка · 5 вопросов · история в браузере
+      <div className="app-header">
+        <div>
+          <div className="brand text-lg sm:text-xl">AI-тренажёр собеседований</div>
+          <div className="subtitle text-sm">
+            Строгая проверка · 5 вопросов · история в браузере
+          </div>
         </div>
+        <ThemeToggle />
       </div>
 
       {step === "start" ? (
